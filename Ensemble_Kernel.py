@@ -1042,16 +1042,7 @@ def clinical_kernel(x, y=None):
     mat /= x.shape[1]
     return mat
 
-def new_kernel(x):
-    """idea
-    1. nominal_columns 추출
-    2. nominal_columns를 제외한 데이터프레임 x_c_o_dataframe 제작(+status, time제거)
-    3. nominal_columns가 있는 데이터프레임 x_n_dataframe 제작
-    4. coxph
-    5. 원래 데이터 columns 개수로 반복문 돌려서 matrix 계산
-    ->원래 데이터(x)에 있는 칼럼 중 x_c_o_dataframe에 들어가 있으면 def(c_o)
-    ->x에 있는 칼럼 중 x_n_dataframe에 들어가 있으면 def(nom)
-    """
+def new_kernel(x, coef=None):
 
     def c_o(x):
         x_matrix = np.eye(len(x))
@@ -1071,7 +1062,7 @@ def new_kernel(x):
                     x_matrix[i,j] = 0
         return x_matrix
 
-    x_1=x.drop(['status','time'],axis=1)
+    x_1=x.drop(['Status','OS'],axis=1)
 
     nominal_columns = x_1.select_dtypes(include=['object', 'category']).columns
 
@@ -1079,18 +1070,20 @@ def new_kernel(x):
     x_n_dataframe=x[[i for i in (nominal_columns)]] #nominal
     
     from lifelines import CoxPHFitter
-    coxph = CoxPHFitter()
-    coxph.fit(x, duration_col = 'time', event_col = 'status')
-    coef = np.log(coxph.hazard_ratios_)
+    
+    if coef is None:
+        coxph = CoxPHFitter()
+        coxph.fit(x, duration_col = 'OS', event_col = 'Status')
+        coef = np.log(coxph.hazard_ratios_)
 
     sum_matrix = 0
 
-    for i in range(x.shape[1]):
-        if x.columns[i] in x_c_o_dataframe.columns:
-            sum_matrix += coef[x.columns[i]] * c_o(x[x.columns[i]])
-        elif x.columns[i] in x_n_dataframe.columns:
-            sum_matrix += coef[x.columns[i]] * nom(x[x.columns[i]])
+    for i in x.columns:
+        if i in x_c_o_dataframe.columns:
+            sum_matrix += coef[i] * c_o(x[i])
+        elif i in x_n_dataframe.columns:
+            sum_matrix += coef[i] * nom(x[i])
 
     mat = sum_matrix / sum(coef)
 
-    return mat
+    return mat,coef
