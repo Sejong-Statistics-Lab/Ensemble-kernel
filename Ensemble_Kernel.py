@@ -1035,40 +1035,47 @@ def clinical_kernel(x, y=None):
     else:
         y_numeric = x_numeric
 
-    continuous_ordinal_kernel(x_numeric, y_numeric, mat) # mat이 continuous_ordinal_kernel의 output
-    _nominal_kernel(x.loc[:, nominal_columns].values,    # mat이 nominal_kernel의 output
+    continuous_ordinal_kernel(x_numeric, y_numeric, mat)
+    _nominal_kernel(x.loc[:, nominal_columns].values,    
                     y.loc[:, nominal_columns].values,
                     mat)
-    mat /= x.shape[1] #여기서 output인 mat은 11개의 columns에 대한 matrix의 합 / x_columns의 갯수로 나누어주는 것, 즉 x.shape[1]으로 나누게 되면 weight가 1/n이 됩니다. 이 부분을 고쳐야함
+    mat /= x.shape[1]
     return mat
 
-# 즉 mat의 weight를 coxph의 coef로 바꿔야하기 때문에 continuous_ordinal_kernel과 _nominal_kernel에서 sum을 하기 전에 coxph를 돌리고 coef를 weight로 곱해준 후 합산하여 나와야함
-
 def new_kernel(x):
+    """idea
+    1. nominal_columns 추출
+    2. nominal_columns를 제외한 데이터프레임 x_c_o_dataframe 제작(+status, time제거)
+    3. nominal_columns가 있는 데이터프레임 x_n_dataframe 제작
+    4. coxph
+    5. 원래 데이터 columns 개수로 반복문 돌려서 matrix 계산
+    ->원래 데이터(x)에 있는 칼럼 중 x_c_o_dataframe에 들어가 있으면 def(c_o)
+    ->x에 있는 칼럼 중 x_n_dataframe에 들어가 있으면 def(nom)
+    """
 
     def c_o(x):
-        x1_matrix = np.eye(len(x))
+        x_matrix = np.eye(len(x))
         d = np.max(x) - np.min(x)
         for i in range(len(x)):
             for j in range(len(x)):
-                x1_matrix[i,j] = (d-np.abs(x.iloc[i]-x.iloc[j]))/d
-        return x1_matrix
+                x_matrix[i,j] = (d-np.abs(x.iloc[i]-x.iloc[j]))/d
+        return x_matrix
 
     def nom(x):
-        x2_matrix = np.eye(len(x))
+        x_matrix = np.eye(len(x))
         for i in range(len(x)):
             for j in range(len(x)):
                 if x.iloc[i] == x.iloc[j]:
-                    x2_matrix[i,j] = 1
+                    x_matrix[i,j] = 1
                 else:
-                    x2_matrix[i,j] = 0
-        return x2_matrix
+                    x_matrix[i,j] = 0
+        return x_matrix
 
-    nominal_columns = x.select_dtypes(include=['object', 'category']).columns
+    x_1=x.drop(['status','time'],axis=1)
 
-    x_c_o=x.drop(nominal_columns,axis=1)
-    x_status_time=x_c_o.reindex(columns=['status','time'])
-    x_c_o_dataframe=x_c_o.drop(['status','time'],axis=1) #continuous and ordinal
+    nominal_columns = x_1.select_dtypes(include=['object', 'category']).columns
+
+    x_c_o_dataframe=x_1.drop(nominal_columns,axis=1) #continuous and ordinal
     x_n_dataframe=x[[i for i in (nominal_columns)]] #nominal
     
     from lifelines import CoxPHFitter
