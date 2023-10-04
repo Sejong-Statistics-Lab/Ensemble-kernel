@@ -1043,3 +1043,47 @@ def clinical_kernel(x, y=None):
     return mat
 
 # 즉 mat의 weight를 coxph의 coef로 바꿔야하기 때문에 continuous_ordinal_kernel과 _nominal_kernel에서 sum을 하기 전에 coxph를 돌리고 coef를 weight로 곱해준 후 합산하여 나와야함
+
+def new_kernel(x):
+
+    def c_o(x):
+        x1_matrix = np.eye(len(x))
+        d = np.max(x) - np.min(x)
+        for i in range(len(x)):
+            for j in range(len(x)):
+                x1_matrix[i,j] = (d-np.abs(x.iloc[i]-x.iloc[j]))/d
+        return x1_matrix
+
+    def nom(x):
+        x2_matrix = np.eye(len(x))
+        for i in range(len(x)):
+            for j in range(len(x)):
+                if x.iloc[i] == x.iloc[j]:
+                    x2_matrix[i,j] = 1
+                else:
+                    x2_matrix[i,j] = 0
+        return x2_matrix
+
+    nominal_columns = x.select_dtypes(include=['object', 'category']).columns
+
+    x_c_o=x.drop(nominal_columns,axis=1)
+    x_status_time=x_c_o.reindex(columns=['status','time'])
+    x_c_o_dataframe=x_c_o.drop(['status','time'],axis=1) #continuous and ordinal
+    x_n_dataframe=x[[i for i in (nominal_columns)]] #nominal
+    
+    from lifelines import CoxPHFitter
+    coxph = CoxPHFitter()
+    coxph.fit(x, duration_col = 'time', event_col = 'status')
+    coef = np.log(coxph.hazard_ratios_)
+
+    sum_matrix = 0
+
+    for i in range(x.shape[1]):
+        if x.columns[i] in x_c_o_dataframe.columns:
+            sum_matrix += coef[x.columns[i]] * c_o(x[x.columns[i]])
+        elif x.columns[i] in x_n_dataframe.columns:
+            sum_matrix += coef[x.columns[i]] * nom(x[x.columns[i]])
+
+    mat = sum_matrix / sum(coef)
+
+    return mat
