@@ -529,7 +529,7 @@ def train_predict_fastKernelSurvivalSVM(x_train, y_train, x_test, y_test, param_
     train_kernel, coef, coef_drop, remaining_variables = new_kernel(x_train, drop=drop, keywords = keywords)
 
     # Grid Optimization
-    kssvm = FastKernelSurvivalSVM(optimizer = "rbtree", kernel = 'precomputed', max_iter = 1000, tol = 1e-6, random_state = 42)
+    kssvm = FastKernelSurvivalSVM(optimizer = "rbtree", kernel = 'precomputed', max_iter = 1000, tol = 1e-6, random_state = 36)
     kgcv = GridSearchCV(kssvm, param_grid, n_jobs=-1, refit=True, cv=KFold(n_splits = 5, shuffle=True, random_state=36))
 
     # Fit model
@@ -600,7 +600,7 @@ def train_predict_fastKernelSurvivalSVM_clinical(x_train, y_train, x_test, y_tes
         "test_c_index": test_c_index[0],
     }
 
-def train_predict_fastKernelSurvivalSVM_AFT(x_train, y_train, x_test, y_test, param_grid, aft_model=None, keywords = ['Age', 'Sex'], drop=False, coef_drop=None, cv = KFold(n_splits=5, shuffle=True, random_state=36)):
+def train_predict_fastKernelSurvivalSVM_AFT(x_train, y_train, x_test, y_test, param_grid, aft_model=None, keywords = ['Age', 'Sex'], drop=False, coef_drop=None, cv = KFold(n_splits=5, shuffle=True, random_state=42)):
     # Create kernel using x_train
     train_kernel, coef, coef_drop, remaining_variables = new_kernel_AFT(x_train, drop=drop, keywords = keywords, aft_model=aft_model)
 
@@ -739,3 +739,34 @@ def train_predict_fastKernelSurvivalSVM_random_AFT(x_train, y_train, x_test, y_t
                            ignore_index=True)
         
     return results
+
+def C_index_fastKernelSurvivalSVM(x_train, y_train, x_test, y_test, param_grid, keywords = ['Age', 'Sex'], drop=False, coef_drop=None,
+                                            cv = KFold(n_splits = 5, shuffle=True, random_state=36)):
+    # Create kernel using x_train
+    train_kernel, coef, coef_drop, remaining_variables = new_kernel(x_train, drop=drop, keywords = keywords)
+
+    # Grid Optimization
+    kssvm = FastKernelSurvivalSVM(optimizer = "rbtree", kernel = 'precomputed', max_iter = 1000, tol = 1e-6, random_state = 36)
+    kgcv = GridSearchCV(kssvm, param_grid, n_jobs=-1, refit=True, cv=KFold(n_splits = 5, shuffle=True, random_state=36))
+
+    # Fit model
+    kgcv.fit(train_kernel, y_train)
+
+    # Optimal hyperparameters and c_index
+    best_params = kgcv.best_params_
+    best_c_index = kgcv.best_score_
+
+    # Predict on x_train and calculate c_index
+    train_pred = kgcv.predict(train_kernel)
+    train_c_index = concordance_index_censored(y_train["Status"], y_train["OS"], train_pred)
+
+    # Predict on x_test and calculate c_index
+    test_kernel, _, _, _ = new_kernel(x_train, x_test, coef=coef, drop=drop, coef_drop=coef_drop, keywords=keywords)
+    test_pred = kgcv.predict(test_kernel)
+    test_c_index = concordance_index_censored(y_test["Status"], y_test["OS"], test_pred)
+
+    train_C_index = train_c_index[0]
+    test_C_index = test_c_index[0]
+    remaining_variables = remaining_variables
+
+    return train_C_index, test_C_index, remaining_variables
