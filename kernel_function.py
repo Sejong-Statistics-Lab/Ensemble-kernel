@@ -1,35 +1,62 @@
 import numpy as np
 import pandas as pd
-from lifelines import CoxPHFitter
-from lifelines import LogNormalAFTFitter, WeibullAFTFitter, LogLogisticAFTFitter
-from lifelines import WeibullFitter, LogNormalFitter, LogLogisticFitter
+from lifelines import CoxPHFitter, LogNormalAFTFitter, WeibullAFTFitter, LogLogisticAFTFitter
+from lifelines import LogNormalFitter, WeibullFitter, LogLogisticFitter
 
-import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-import seaborn as sns
-from sklearn import set_config
-from sklearn.model_selection import ShuffleSplit, GridSearchCV
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import GridSearchCV
 
-from sksurv.column import encode_categorical
 from sksurv.metrics import concordance_index_censored
-from sksurv.svm import FastSurvivalSVM, FastKernelSurvivalSVM
+from sksurv.svm import FastKernelSurvivalSVM
 from sksurv.kernels import clinical_kernel
-from sklearn import metrics
 
-from sklearn.model_selection import KFold
-from sklearn.metrics import make_scorer
-from statsmodels.stats.outliers_influence import variance_inflation_factor
+def split_data(df, testSize=0.33, randomState=None):
+    data_0 = df[df.Status==0]
+    data_1 = df[df.Status==1]
 
-import copy
-import time
-import json
-from skopt import BayesSearchCV
+    x_train_0, x_test_0, target_train_0, target_test_0 = train_test_split(data_0.drop(['OS','Status'], axis = 1), data_0[['OS','Status']], test_size=testSize, random_state=randomState)
+    x_train_1, x_test_1, target_train_1, target_test_1 = train_test_split(data_1.drop(['OS','Status'], axis = 1), data_1[['OS','Status']], test_size=testSize, random_state=randomState)
 
-import sys
-sys.path.append('G:\내 드라이브\대학\대외\2023\연구원\연구과제\Ensemble-Kernel')
+    x_train = pd.concat([x_train_0, x_train_1])
+    x_test = pd.concat([x_test_0, x_test_1])
+    target_train = pd.concat([target_train_0, target_train_1])
+    target_test = pd.concat([target_test_0, target_test_1])
 
-from Ensemble_Kernel_New import split_data,prepare_response_variable, c_o, nom, new_kernel, train_predict_fastKernelSurvivalSVM_bayesian, train_predict_fastKernelSurvivalSVM_clinical_bayesian, one_hot_encode_columns, remove_high_vif_columns, convert_categorical_to_boolean, compare_kernels_with_abs_and_no_abs, train_predict_fastKernelSurvivalSVM_bayesian_no_abs, train_predict_fastKernelSurvivalSVM, train_predict_fastKernelSurvivalSVM_AFT, new_kernel_AFT, train_predict_fastKernelSurvivalSVM_bayesian_AFT, train_predict_fastKernelSurvivalSVM_clinical, train_predict_fastKernelSurvivalSVM_clinical_bayesian, C_index_fastKernelSurvivalSVM
+    x_train['OS'] = target_train['OS']
+    x_train['Status'] = target_train['Status']
+    x_test['OS'] = target_test['OS']
+    x_test['Status'] = target_test['Status']
+    
+    return x_train, x_test, target_train, target_test
+
+def prepare_response_variable(target):
+    dt = np.dtype([('Status', np.bool_), ('OS', np.int64)])
+    result = np.empty(shape=(len(target),), dtype=dt)
+
+    for i in range(len(target)):
+        result[i] = bool(target.iloc[i]['Status']), target.iloc[i]['OS']
+
+    return result
+
+def c_o(x1, x2):
+    x_matrix = np.eye(N=len(x2), M=len(x1))
+    x = pd.concat([x1,x2],axis=0, join='inner')
+    d = np.max(x) - np.min(x)
+
+    for i in range(len(x2)):
+        for j in range(len(x1)):
+            x_matrix[i,j] = (d-np.abs(x2.iloc[i]-x1.iloc[j]))/d
+    return x_matrix
+
+def nom(x1, x2):
+    x_matrix = np.eye(N=len(x2), M=len(x1))
+    for i in range(len(x2)):
+        for j in range(len(x1)):
+            if x2.iloc[i] == x1.iloc[j]:
+                x_matrix[i,j] = 1
+            else:
+                x_matrix[i,j] = 0
+    return x_matrix
 
 def ensemble_cox_kernel(x1, x2=None, coef=None, keywords = ['Age', 'Sex']):
     if x2 is None:
@@ -96,7 +123,6 @@ def ensemble_AFT_kernel(x1, x2=None, coef=None, keywords = ['Age', 'Sex'], aft_m
     mat = sum_matrix / sum(coef)
 
     return mat, coef, remaining_variables
-
 
 def c_index_kernel_type(x_train, y_train, x_test, y_test, param_grid, param_space, cv, keywords = ['Age', 'Sex'], type = 'ensemble_cox'):
 
