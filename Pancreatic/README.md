@@ -8,8 +8,7 @@ Mok L, Kim Y, Lee S et al. HisCoM-PAGE: Hierarchical structureal component model
 ## Result
 *Scenario1
 
-| |<span style="color:red">train C-index</span>| |<span style="color:green">test C-index</span>| |
-|Kernel Function|mean|sd|mean|sd|
+|Kernel Function|<span style="color:red">mean(train C-index)</span>|<span style="color:red">sd(train C-index)</span>|<span style="color:green">mean(test C-index)</span>|<span style="color:green">sd(test C-index)</span>|
 |:---|---:|---:|---:|---:|
 |Linear|0.6539|0.0782|0.6206|0.0655|
 |Clinical|0.7648|0.0369|**0.6909**|0.0566|
