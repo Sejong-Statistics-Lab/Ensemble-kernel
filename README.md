@@ -20,7 +20,7 @@ Daemen A, Timmerman D, Bosch T, Bottomley C, Kirk E, Holsbeke C et al. (2012) Im
 Harrel F, Califf R, Pryor D et al. (1982) Evaluating the yield of medical tests. Journal of American Medical Association. 247, p. 2543-2546.
 
 ## Source
-The data vere obtained from
+The data were obtained from
 
 (pancreatic) Mok L, Kim Y, Lee S et al. HisCoM-PAGE: Hierarchical structureal component models for pathway analysis of gene expression data. 2019. Genes, 10, 931.
 
