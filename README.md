@@ -12,6 +12,13 @@
 
 * The performance of ensemble kernel is compared with those of linear kernel and clinical kernel by  the concordance index (C-index) of survival models for the four different datasets.
 
+## Code explanation
+* Kernel_Function1 and Kernel_Function2 represent files for versions 1 and 2 of the code from previous iterations. Kernel Function3 is the final code, so please use it with caution.
+
+* These files gather necessary code for verifying results. To create a kernel using Cox, use the ensemble_cox_kernel function, and for creating a kernel using AFT, also use the ensemble_cox_kernel function.
+
+* You can assess performance using the c-index metric with the c_index_kernel_type function, available for different kernel types (linear, clinical, ensemble_cox, ensemble_aft).
+
 ## Reference
 * Daemen A, Moor De B. (2009) Development of a kernel function for clinical data. In: Proc of conf of IEEE Engineering in Medicine and Biology Society (EMBC). p. 5913–7.
 
