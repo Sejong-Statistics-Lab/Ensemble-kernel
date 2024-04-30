@@ -12,9 +12,11 @@
 
 *The performance of ensemble kernel is compared with those of linear kernel and clinical kernel by  the concordance index (C-index) of survival models for the four different datasets.
 
-## References
+## Reference
 Daemen A, Moor De B. (2009) Development of a kernel function for clinical data. In: Proc of conf of IEEE Engineering in Medicine and Biology Society (EMBC). p. 5913–7.
+
 Daemen A, Timmerman D, Bosch T, Bottomley C, Kirk E, Holsbeke C et al. (2012) Improved modeling of clinical data with kernel methods. Artificial Intelligence in Medicine. 54, p.103-114.
+
 Harrel F, Califf R, Pryor D et al. (1982) Evaluating the yield of medical tests. Journal of American Medical Association. 247, p. 2543-2546.
 
 ## Source
