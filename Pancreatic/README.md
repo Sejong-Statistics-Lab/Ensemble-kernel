@@ -1,4 +1,4 @@
-# Pancreatic data
+# Pancreatic cancer data
 
 ## Result
 * **Scenario1**
