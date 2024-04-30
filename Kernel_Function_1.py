@@ -997,7 +997,6 @@ def _get_continuous_and_ordinal_array(x):
 
     return x_out, nominal_columns
 
-#이 부분에서 kernel의 계산 방식을 바꿔야함
 def clinical_kernel(x, y=None):
     """Computes clinical kernel
     The clinical kernel distinguishes between continuous

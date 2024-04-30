@@ -231,10 +231,10 @@ def new_kernel_AFT(x1, x2=None, coef=None, coef_drop=None, drop=False, keywords 
     return mat, coef, coef_drop, remaining_variables
 
 def compare_kernels_with_abs_and_no_abs(df, keywords = ['Age', 'Sex'], random_state=42):
-    # 랜덤하게 n_samples명의 환자를 선택
+    # Selecting n_samples randomly from patients
     selected_df = df.sample(n=df.shape[0], random_state=random_state)
 
-    # 선택된 환자 데이터 전치시키기
+    # Transposing selected patient data
     transposed_df = selected_df.transpose()
     transposed_df = transposed_df.iloc[:, :3]
     def convert_bool_to_int(value):
@@ -243,7 +243,7 @@ def compare_kernels_with_abs_and_no_abs(df, keywords = ['Age', 'Sex'], random_st
         else:
             return value
 
-    # 데이터프레임에 함수 적용
+    # Applying a function to a DataFrame
     transposed_df = transposed_df.applymap(convert_bool_to_int)
     pd.options.display.float_format = '{:.3f}'.format
     print("Transposed selected data:")

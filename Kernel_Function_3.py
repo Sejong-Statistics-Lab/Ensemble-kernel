@@ -150,14 +150,14 @@ def c_index_kernel_type(x_train, y_train, x_test, y_test, param_grid, param_spac
         test_c_index = concordance_index_censored(y_test["Status"], y_test["OS"], test_pred)
 
     elif type == 'ensemble_aft':
-        # 각 피팅 인스턴스화 
+        # Instantiate each fitting instance 
         wb = WeibullFitter() 
         log = LogNormalFitter() 
         loglogis = LogLogisticFitter()
 
         min_AIC = []
 
-        # AIC를 최소로하는 모형 선택
+        # Model selection with minimum AIC
         for model in [wb, log, loglogis]:
             model.fit(durations = x_train["OS"], event_observed = x_train["Status"])
             min_AIC.append(model.AIC_)
