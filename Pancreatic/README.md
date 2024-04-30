@@ -20,6 +20,7 @@
 |Ensemble(AFT)|0.7604|0.0467|0.6678|0.0625|
 
 |**Remaining Variables**|T_Stage(43), alcohol_history_documented_YES(36), history_of_chronic_pancreatitis_YES(41), history_of_diabetes_YES(45), person_neoplasm_cancer_status_WITH TUMOR(87), postoperative_rx_tx_YES(95), N_Stage(50), tobacco_smoking_history(54), maximum_tumor_dimension(54), radiation_therapy_YES(52), residual_tumor_R1(24), Sex(100), Age(100)|
+|---|---|
 
 * Scenario3(AFT)
 
@@ -31,6 +32,7 @@
 |Ensemble(AFT)|0.7604|0.0344|0.6711|0.0573|
 
 |**Remaining Variables**|T_Stage(51), alcohol_history_documented_YES(42), history_of_chronic_pancreatitis_YES(42), history_of_diabetes_YES(34), person_neoplasm_cancer_status_WITH TUMOR(87), postoperative_rx_tx_YES(99), N_Stage(49), tobacco_smoking_history(58), maximum_tumor_dimension(53), radiation_therapy_YES(57), residual_tumor_R1(26), Sex(100), Age(100)|
+|---|---|
 
 ## Source
 The data were obtained from
